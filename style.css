@@ -1,0 +1,227 @@
+/* 全局样式 */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #333;
+}
+
+/* 表单元素样式 */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 预览容器样式 */
+#previewContainer {
+    background-color: #f9f9f9;
+    min-height: 400px;
+    overflow-x: auto;
+}
+
+/* 按钮悬停效果增强 */
+button {
+    transition: all 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 打印相关样式 */
+@media print {
+    /* 隐藏不需要打印的元素 */
+    header,
+    footer,
+    #printOptionsForm,
+    #previewSection {
+        display: none !important;
+    }
+    
+    /* 确保打印区域可见 */
+    #printArea {
+        display: block !important;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        background: white;
+        z-index: 1000;
+    }
+    
+    /* 移除页面边距 */
+    @page {
+        margin: 0;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+    }
+}
+
+/* A4纸张样式 */
+.a4-paper {
+    width: 210mm;
+    height: 297mm;
+    padding: 20mm;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 0 auto;
+}
+
+/* 3寸宽度纸张样式 */
+.three-inch-paper {
+    width: 3in;
+    height: auto;
+    padding: 0.5in;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 0 auto;
+}
+
+/* 练习表样式 */
+.practice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12pt;
+}
+
+.a4-paper .practice-table {
+    font-size: 10pt;
+}
+
+.three-inch-paper .practice-table {
+    font-size: 8pt;
+}
+
+.practice-table td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    height: 30px;
+    vertical-align: middle;
+}
+
+.practice-table .jp-character {
+    font-weight: bold;
+    text-align: center;
+    background-color: #f0f7ff;
+    width: 25%;
+}
+
+.practice-table .romaji {
+    text-align: center;
+    background-color: #fff7f0;
+    width: 25%;
+}
+
+.practice-table .blank {
+    background-color: white;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 16px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .a4-paper {
+        width: 100%;
+        padding: 10mm;
+        box-shadow: none;
+    }
+    
+    .three-inch-paper {
+        width: 100%;
+        box-shadow: none;
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#previewSection {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* 加载指示器 */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 帮助提示样式 */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}

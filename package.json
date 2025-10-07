@@ -1,0 +1,29 @@
+{
+  "name": "japanese-character-practice",
+  "version": "1.0.0",
+  "description": "五十音图默写练习打印工具 - 帮助学习日语五十音图的在线工具",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "deploy:init": "git init && git add . && git commit -m 'Initial commit'",
+    "deploy:remote": "git remote add origin",
+    "deploy:push": "git push -u origin master",
+    "deploy": "echo \"请按照README.md中的步骤进行部署\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/USERNAME/REPOSITORY.git"
+  },
+  "keywords": [
+    "日语",
+    "五十音图",
+    "学习工具",
+    "默写练习"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/USERNAME/REPOSITORY/issues"
+  },
+  "homepage": "https://github.com/USERNAME/REPOSITORY#readme"
+}
