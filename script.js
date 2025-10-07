@@ -294,15 +294,30 @@ function printPracticeSheet() {
     // 获取用户选择的纸张大小
     const options = getOptions();
     
-    // 应用正确的纸张大小样式到打印区域
+    // 应用正确的纸张大小样式到打印区域和预览区域
     const printArea = document.getElementById('printArea');
-    const paperElement = printArea.querySelector('div');
+    const previewContainer = document.getElementById('previewContainer');
     
-    if (paperElement) {
+    // 确保打印区域有内容
+    if (printArea.innerHTML.trim() === '') {
+        // 如果打印区域为空，先生成练习表
+        generatePracticeSheet();
+    }
+    
+    // 更新打印区域的纸张大小
+    const printPaperElement = printArea.querySelector('div');
+    if (printPaperElement) {
         // 移除所有纸张大小类
-        paperElement.classList.remove('a4-paper', 'three-inch-paper');
+        printPaperElement.classList.remove('a4-paper', 'three-inch-paper');
         // 添加用户选择的纸张大小类
-        paperElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
+        printPaperElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
+    }
+    
+    // 也更新预览区域的纸张大小，以便用户可以看到效果
+    const previewPaperElement = previewContainer.querySelector('div');
+    if (previewPaperElement) {
+        previewPaperElement.classList.remove('a4-paper', 'three-inch-paper');
+        previewPaperElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
     }
     
     // 触发浏览器打印功能

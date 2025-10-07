@@ -69,6 +69,24 @@ button:disabled {
         z-index: 1000;
     }
     
+    /* 设置A4纸张打印选项 */
+    #printArea .a4-paper {
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: 20mm !important;
+        box-shadow: none !important;
+        margin: 0 auto !important;
+    }
+    
+    /* 设置3寸纸张打印选项 */
+    #printArea .three-inch-paper {
+        width: 3in !important;
+        height: auto !important;
+        padding: 0.5in !important;
+        box-shadow: none !important;
+        margin: 0 auto !important;
+    }
+    
     /* 移除页面边距 */
     @page {
         margin: 0;
