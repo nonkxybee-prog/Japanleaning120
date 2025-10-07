@@ -161,12 +161,20 @@ function getOptions() {
     const rows = parseInt(document.getElementById('rows').value);
     const wordCount = parseInt(document.getElementById('wordCount').value);
     
+    // 获取选择的具体行（如果有）
+    const selectedRows = [];
+    const rowCheckboxes = document.querySelectorAll('input[name="selectedRows"]:checked');
+    rowCheckboxes.forEach(checkbox => {
+        selectedRows.push(parseInt(checkbox.value));
+    });
+    
     return {
         paperSize,
         translationType,
         sortOrder,
         rows,
-        wordCount
+        wordCount,
+        selectedRows
     };
 }
 
@@ -208,9 +216,6 @@ function generateSheetHTML(data, options) {
         <p class="text-center mb-6">(${options.translationType === 'hiragana' ? '平假名' : '片假名'} ↔ 罗马音)</p>
         <table class="practice-table">`;
     
-    // 计算需要生成的行数
-    const rows = Math.min(options.rows, Math.ceil(data.length / 2));
-    
     // 生成表头
     html += `<tr>
         <th class="jp-character">${options.translationType === 'hiragana' ? '平假名' : '片假名'}</th>
@@ -220,30 +225,62 @@ function generateSheetHTML(data, options) {
     </tr>`;
     
     // 生成练习行
-    for (let i = 0; i < rows; i++) {
-        html += '<tr>';
-        
-        // 每行两个单词
-        for (let j = 0; j < 2; j++) {
-            const index = i * 2 + j;
-            if (index < data.length) {
-                // 随机决定哪一列留空（日语字符或罗马音）
-                const hideJapanese = Math.random() > 0.5;
-                
-                html += `<td class="${hideJapanese ? 'blank' : 'jp-character'}">`;
-                html += hideJapanese ? '' : data[index].jp;
-                html += '</td>';
-                
-                html += `<td class="${!hideJapanese ? 'blank' : 'romaji'}">`;
-                html += !hideJapanese ? '' : data[index].romaji;
-                html += '</td>';
-            } else {
-                // 如果没有更多数据，添加空单元格
-                html += '<td class="blank"></td><td class="blank"></td>';
+    if (options.selectedRows && options.selectedRows.length > 0) {
+        // 如果用户选择了具体的行
+        options.selectedRows.forEach(rowIndex => {
+            html += '<tr>';
+            
+            // 每行两个单词
+            for (let j = 0; j < 2; j++) {
+                const index = rowIndex * 2 + j;
+                if (index < data.length) {
+                    // 随机决定哪一列留空（日语字符或罗马音）
+                    const hideJapanese = Math.random() > 0.5;
+                    
+                    html += `<td class="${hideJapanese ? 'blank' : 'jp-character'}">`;
+                    html += hideJapanese ? '' : data[index].jp;
+                    html += '</td>';
+                    
+                    html += `<td class="${!hideJapanese ? 'blank' : 'romaji'}">`;
+                    html += !hideJapanese ? '' : data[index].romaji;
+                    html += '</td>';
+                } else {
+                    // 如果没有更多数据，添加空单元格
+                    html += '<td class="blank"></td><td class="blank"></td>';
+                }
             }
-        }
+            
+            html += '</tr>';
+        });
+    } else {
+        // 计算需要生成的行数
+        const rows = Math.min(options.rows, Math.ceil(data.length / 2));
         
-        html += '</tr>';
+        for (let i = 0; i < rows; i++) {
+            html += '<tr>';
+            
+            // 每行两个单词
+            for (let j = 0; j < 2; j++) {
+                const index = i * 2 + j;
+                if (index < data.length) {
+                    // 随机决定哪一列留空（日语字符或罗马音）
+                    const hideJapanese = Math.random() > 0.5;
+                    
+                    html += `<td class="${hideJapanese ? 'blank' : 'jp-character'}">`;
+                    html += hideJapanese ? '' : data[index].jp;
+                    html += '</td>';
+                    
+                    html += `<td class="${!hideJapanese ? 'blank' : 'romaji'}">`;
+                    html += !hideJapanese ? '' : data[index].romaji;
+                    html += '</td>';
+                } else {
+                    // 如果没有更多数据，添加空单元格
+                    html += '<td class="blank"></td><td class="blank"></td>';
+                }
+            }
+            
+            html += '</tr>';
+        }
     }
     
     html += `</table>
@@ -254,6 +291,20 @@ function generateSheetHTML(data, options) {
 
 // 打印或下载练习表
 function printPracticeSheet() {
+    // 获取用户选择的纸张大小
+    const options = getOptions();
+    
+    // 应用正确的纸张大小样式到打印区域
+    const printArea = document.getElementById('printArea');
+    const paperElement = printArea.querySelector('div');
+    
+    if (paperElement) {
+        // 移除所有纸张大小类
+        paperElement.classList.remove('a4-paper', 'three-inch-paper');
+        // 添加用户选择的纸张大小类
+        paperElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
+    }
+    
     // 触发浏览器打印功能
     window.print();
     
@@ -262,7 +313,57 @@ function printPracticeSheet() {
 
 // 页面加载完成后执行的初始化函数
 function init() {
-    // 可以在这里添加任何初始化逻辑
+    // 添加行数选择框的事件监听
+    const rowsInput = document.getElementById('rows');
+    const rowSelectionContainer = document.getElementById('rowSelectionContainer');
+    
+    if (rowsInput && rowSelectionContainer) {
+        // 当行数改变时，更新可选行的数量
+        rowsInput.addEventListener('change', updateRowSelectionOptions);
+        
+        // 初始化行选择选项
+        updateRowSelectionOptions();
+    }
+}
+
+// 更新行选择选项
+function updateRowSelectionOptions() {
+    const rowsInput = document.getElementById('rows');
+    const rowSelectionContainer = document.getElementById('rowSelectionContainer');
+    const rowSelectionToggle = document.getElementById('rowSelectionToggle');
+    
+    if (!rowsInput || !rowSelectionContainer || !rowSelectionToggle) return;
+    
+    const rows = parseInt(rowsInput.value);
+    
+    // 清空现有选项
+    rowSelectionContainer.innerHTML = '';
+    
+    // 创建行选择选项
+    if (rowSelectionToggle.checked) {
+        const maxRows = Math.min(rows, 25); // 限制最多显示25行选择框
+        
+        // 创建一个滚动容器
+        const scrollContainer = document.createElement('div');
+        scrollContainer.className = 'max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-lg mt-2';
+        
+        // 创建行选择网格
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-5 gap-2';
+        
+        for (let i = 0; i < maxRows; i++) {
+            const label = document.createElement('label');
+            label.className = 'flex items-center text-sm cursor-pointer';
+            label.innerHTML = `
+                <input type="checkbox" name="selectedRows" value="${i}" class="mr-1">
+                行${i+1}
+            `;
+            grid.appendChild(label);
+        }
+        
+        scrollContainer.appendChild(grid);
+        rowSelectionContainer.appendChild(scrollContainer);
+    }
 }
 
 // 当页面加载完成时调用初始化函数
