@@ -291,131 +291,150 @@ function generateSheetHTML(data, options) {
 
 // 打印或下载练习表
 function printPracticeSheet() {
-    // 获取用户选择的纸张大小
-    const options = getOptions();
-    
-    // 获取打印区域
-    const printArea = document.getElementById('printArea');
-    
-    // 确保打印区域有内容
-    if (printArea.innerHTML.trim() === '') {
-        // 如果打印区域为空，先生成练习表
-        generatePracticeSheet();
-    }
-    
-    // 创建一个临时的打印专用iframe
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'absolute';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = 'none';
-    document.body.appendChild(printFrame);
-    
-    // 复制打印内容到iframe
-    const frameDoc = printFrame.contentDocument || printFrame.contentWindow.document;
-    frameDoc.open();
-    
-    // 构建完整的HTML文档，包含必要的样式
-    let html = `<!DOCTYPE html>
-    <html lang="zh-CN">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>五十音图默写练习打印</title>
-        <style>
-            @media print {
-                body {
-                    margin: 0;
-                    padding: 0;
-                    width: 100%;
-                    height: 100%;
-                }
-                
-                .a4-paper {
-                    width: 210mm !important;
-                    height: 297mm !important;
-                    padding: 20mm !important;
-                    margin: 0 auto !important;
-                    box-shadow: none !important;
-                    page-break-inside: avoid;
-                }
-                
-                .three-inch-paper {
-                    width: 3in !important;
-                    height: auto !important;
-                    padding: 0.5in !important;
-                    margin: 0 auto !important;
-                    box-shadow: none !important;
-                    page-break-inside: avoid;
-                }
-                
-                @page {
-                    margin: 0;
-                    size: auto;
-                }
-            }
-            
-            /* 非打印样式 */
-            .practice-table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            
-            .practice-table th,
-            .practice-table td {
-                border: 1px solid #ccc;
-                padding: 8px;
-                text-align: center;
-            }
-            
-            .jp-character {
-                font-size: 24px;
-                font-weight: bold;
-            }
-            
-            .romaji {
-                font-size: 16px;
-            }
-            
-            .blank {
-                background-color: #f5f5f5;
-                min-height: 40px;
-            }
-        </style>
-    </head>
-    <body>`;
-    
-    // 添加打印内容，确保应用了正确的纸张大小类
-    const paperElement = printArea.querySelector('div');
-    if (paperElement) {
-        // 克隆元素，避免修改原内容
-        const clonedElement = paperElement.cloneNode(true);
-        // 移除所有纸张大小类
-        clonedElement.classList.remove('a4-paper', 'three-inch-paper');
-        // 添加用户选择的纸张大小类
-        clonedElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
-        // 将克隆的元素添加到iframe
-        html += clonedElement.outerHTML;
-    }
-    
-    html += `</body>
-    </html>`;
-    
-    frameDoc.write(html);
-    frameDoc.close();
-    
-    // 当iframe内容加载完成后执行打印
-    printFrame.onload = function() {
-        printFrame.contentWindow.focus();
-        printFrame.contentWindow.print();
+    try {
+        // 获取用户选择的纸张大小
+        const options = getOptions();
         
-        // 打印后移除iframe
-        setTimeout(function() {
-            document.body.removeChild(printFrame);
-        }, 100);
-    };
-    
-    // 注意：下载功能将通过浏览器的打印对话框实现，用户可以选择"另存为PDF"来下载
+        // 获取打印区域
+        const printArea = document.getElementById('printArea');
+        
+        // 确保打印区域有内容
+        if (printArea.innerHTML.trim() === '') {
+            // 如果打印区域为空，先生成练习表
+            generatePracticeSheet();
+        }
+        
+        // 使用更可靠的打印方法
+        // 1. 创建打印窗口
+        const printWindow = window.open('', '_blank', 'height=600,width=800');
+        
+        if (!printWindow) {
+            alert('无法打开打印窗口，请检查浏览器的弹出窗口设置。');
+            return;
+        }
+        
+        // 2. 构建完整的HTML文档
+        const paperElement = printArea.querySelector('div');
+        let printContent = '';
+        
+        if (paperElement) {
+            // 克隆元素，避免修改原内容
+            const clonedElement = paperElement.cloneNode(true);
+            // 移除所有纸张大小类
+            clonedElement.classList.remove('a4-paper', 'three-inch-paper');
+            // 处理纸张大小选项的不一致性
+            const paperClass = options.paperSize === 'a4' ? 'a4-paper' : 
+                             (options.paperSize === '3inch' ? 'three-inch-paper' : 'a4-paper');
+            // 添加用户选择的纸张大小类
+            clonedElement.classList.add(paperClass);
+            // 获取元素的HTML内容
+            printContent = clonedElement.outerHTML;
+        }
+        
+        // 3. 构建完整的HTML文档，包含必要的样式
+        let html = `<!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>五十音图默写练习打印</title>
+            <style>
+                @media print {
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        width: 100%;
+                        height: 100%;
+                    }
+                    
+                    .a4-paper {
+                        width: 210mm !important;
+                        height: 297mm !important;
+                        padding: 20mm !important;
+                        margin: 0 auto !important;
+                        box-shadow: none !important;
+                        page-break-inside: avoid;
+                    }
+                    
+                    .three-inch-paper {
+                        width: 3in !important;
+                        height: auto !important;
+                        padding: 0.5in !important;
+                        margin: 0 auto !important;
+                        box-shadow: none !important;
+                        page-break-inside: avoid;
+                    }
+                    
+                    @page {
+                        margin: 0;
+                        size: auto;
+                    }
+                }
+                
+                /* 非打印样式 */
+                .practice-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                
+                .practice-table th,
+                .practice-table td {
+                    border: 1px solid #ccc;
+                    padding: 8px;
+                    text-align: center;
+                }
+                
+                .jp-character {
+                    font-size: 24px;
+                    font-weight: bold;
+                }
+                
+                .romaji {
+                    font-size: 16px;
+                }
+                
+                .blank {
+                    background-color: #f5f5f5;
+                    min-height: 40px;
+                }
+            </style>
+        </head>
+        <body>
+            ${printContent}
+        </body>
+        </html>`;
+        
+        // 4. 写入内容并打印
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+        
+        // 5. 当文档加载完成后执行打印
+        printWindow.onload = function() {
+            setTimeout(function() {
+                try {
+                    printWindow.focus();
+                    printWindow.print();
+                    
+                    // 打印对话框关闭后关闭窗口
+                    setTimeout(function() {
+                        if (!printWindow.closed) {
+                            printWindow.close();
+                        }
+                    }, 100);
+                } catch (e) {
+                    console.error('打印过程中出现错误:', e);
+                    alert('打印过程中出现错误，请重试。');
+                    printWindow.close();
+                }
+            }, 100);
+        };
+        
+        // 注意：下载功能将通过浏览器的打印对话框实现，用户可以选择"另存为PDF"来下载
+    } catch (error) {
+        console.error('打印功能出现错误:', error);
+        alert('打印功能出现错误，请重试或检查浏览器设置。');
+    }
 }
 
 // 页面加载完成后执行的初始化函数
