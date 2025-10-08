@@ -294,9 +294,8 @@ function printPracticeSheet() {
     // 获取用户选择的纸张大小
     const options = getOptions();
     
-    // 应用正确的纸张大小样式到打印区域和预览区域
+    // 获取打印区域
     const printArea = document.getElementById('printArea');
-    const previewContainer = document.getElementById('previewContainer');
     
     // 确保打印区域有内容
     if (printArea.innerHTML.trim() === '') {
@@ -304,24 +303,117 @@ function printPracticeSheet() {
         generatePracticeSheet();
     }
     
-    // 更新打印区域的纸张大小
-    const printPaperElement = printArea.querySelector('div');
-    if (printPaperElement) {
+    // 创建一个临时的打印专用iframe
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'absolute';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = 'none';
+    document.body.appendChild(printFrame);
+    
+    // 复制打印内容到iframe
+    const frameDoc = printFrame.contentDocument || printFrame.contentWindow.document;
+    frameDoc.open();
+    
+    // 构建完整的HTML文档，包含必要的样式
+    let html = `<!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>五十音图默写练习打印</title>
+        <style>
+            @media print {
+                body {
+                    margin: 0;
+                    padding: 0;
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .a4-paper {
+                    width: 210mm !important;
+                    height: 297mm !important;
+                    padding: 20mm !important;
+                    margin: 0 auto !important;
+                    box-shadow: none !important;
+                    page-break-inside: avoid;
+                }
+                
+                .three-inch-paper {
+                    width: 3in !important;
+                    height: auto !important;
+                    padding: 0.5in !important;
+                    margin: 0 auto !important;
+                    box-shadow: none !important;
+                    page-break-inside: avoid;
+                }
+                
+                @page {
+                    margin: 0;
+                    size: auto;
+                }
+            }
+            
+            /* 非打印样式 */
+            .practice-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            .practice-table th,
+            .practice-table td {
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: center;
+            }
+            
+            .jp-character {
+                font-size: 24px;
+                font-weight: bold;
+            }
+            
+            .romaji {
+                font-size: 16px;
+            }
+            
+            .blank {
+                background-color: #f5f5f5;
+                min-height: 40px;
+            }
+        </style>
+    </head>
+    <body>`;
+    
+    // 添加打印内容，确保应用了正确的纸张大小类
+    const paperElement = printArea.querySelector('div');
+    if (paperElement) {
+        // 克隆元素，避免修改原内容
+        const clonedElement = paperElement.cloneNode(true);
         // 移除所有纸张大小类
-        printPaperElement.classList.remove('a4-paper', 'three-inch-paper');
+        clonedElement.classList.remove('a4-paper', 'three-inch-paper');
         // 添加用户选择的纸张大小类
-        printPaperElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
+        clonedElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
+        // 将克隆的元素添加到iframe
+        html += clonedElement.outerHTML;
     }
     
-    // 也更新预览区域的纸张大小，以便用户可以看到效果
-    const previewPaperElement = previewContainer.querySelector('div');
-    if (previewPaperElement) {
-        previewPaperElement.classList.remove('a4-paper', 'three-inch-paper');
-        previewPaperElement.classList.add(options.paperSize === 'a4' ? 'a4-paper' : 'three-inch-paper');
-    }
+    html += `</body>
+    </html>`;
     
-    // 触发浏览器打印功能
-    window.print();
+    frameDoc.write(html);
+    frameDoc.close();
+    
+    // 当iframe内容加载完成后执行打印
+    printFrame.onload = function() {
+        printFrame.contentWindow.focus();
+        printFrame.contentWindow.print();
+        
+        // 打印后移除iframe
+        setTimeout(function() {
+            document.body.removeChild(printFrame);
+        }, 100);
+    };
     
     // 注意：下载功能将通过浏览器的打印对话框实现，用户可以选择"另存为PDF"来下载
 }
